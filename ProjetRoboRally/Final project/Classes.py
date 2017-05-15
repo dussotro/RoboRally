@@ -317,84 +317,109 @@ class Robot():
     """
 
     def check_up_laser(self):
-        vertical_exception = self.terrain.collidable + ['0','2','4','5','6','7','8','R','F']
         limit=[]
         exist = False
-        for i in self.terrain.laserH:
-            if self.y == i[1]:
-                exist = True
-                limit.append(i[0])
+        for i in range(self.terrain.maxMapx):
+            for j in range(self.terrain.maxMapy):
+                if ord(self.terrain.map[i][j]) in (laser1H + laser2H + laser3H):
+                    if self.y == i[1]:
+                        exist = True
+                        if ord(self.terrain.map[i][j]) in laser1H:
+                            damage = 1
+                        elif ord(self.terrain.map[i][j]) in laser2H:
+                            damage = 3
+                        elif ord(self.terrain.map[i][j]) in laser3H:
+                            damage = 3
+                        limit.append(i[0])
         if exist :
             up_blocked = False
             limit = max(limit)
             for cases in range(self.x,limit+1,-1):
-                if self.terrain.map[cases][self.y] in vertical_exception:
+                if self.terrain.map[cases][self.y].murB or self.terrain.map[cases][self.y].murH:
                     up_blocked = True
 
             if not up_blocked:
-                self.life-=1
-            if up_blocked and self.terrain.mapInit[self.x][self.y] in ['2','6','7']:
-                self.life-=1
+                if not(self.terrain.map[cases][self.y].murH):
+                    self.life-= damage
+            if up_blocked and not(self.terrain.map[cases][self.y].murH):
+                self.life-= damage
 
             
     def check_down_laser(self):
-        vertical_exception = self.terrain.collidable + ['0','2','4','5','6','7','8','R','F']
         limit=[]
         exist = False
-        for i in self.terrain.laserB:
-            if self.y == i[1]:
-                exist = True
-                limit.append(i[0])
+        for i in range(self.terrain.maxMapx):
+            for j in range(self.terrain.maxMapy):
+                if ord(self.terrain.map[i][j]) in (laser1B + laser2B + laser3B):
+                    if self.y == i[1]:
+                        exist = True
+                        if ord(self.terrain.map[i][j]) in laser1B:
+                            damage = 1
+                        elif ord(self.terrain.map[i][j]) in laser2B:
+                            damage = 3
+                        elif ord(self.terrain.map[i][j]) in laser3B:
+                            damage = 3
+                        limit.append(i[0])
         if exist :
             down_blocked = False
             limit = min(limit)
             for cases in range(self.x,limit-1):
-                if self.terrain.map[cases][self.y] in vertical_exception:
+                if self.terrain.map[cases][self.y].murB or self.terrain.map[cases][self.y].murH:
                     down_blocked = True
-                print(down_blocked)
                     
             if not down_blocked:
-                self.life-=1
+                self.life-= damage
                 print('perte en bas')
-            if down_blocked and self.terrain.mapInit[self.x][self.y] in ['0','4','5']:
-                self.life-=1
+            if down_blocked and not(self.terrain.map[cases][self.y].murB):
+                self.life-= damage
                 print('perte en bas')            
 
                 
     def check_left_laser(self):
-        horizontal_exception = self.terrain.collidable + ['1','3','4','5','6','7','9','R','F']
         limit=[]
         exist = False
-        for i in self.terrain.laserG:
-            if self.x == i[0]:
-                exist = True
-                limit.append(i[1])
+        for i in range(self.terrain.maxMapx):
+            for j in range(self.terrain.maxMapy):
+                if ord(self.terrain.map[i][j]) in (laser1G + laser2G + laser3G):
+                    if self.y == i[1]:
+                        exist = True
+                        if ord(self.terrain.map[i][j]) in laser1G:
+                            damage = 1
+                        elif ord(self.terrain.map[i][j]) in laser2G:
+                            damage = 3
+                        elif ord(self.terrain.map[i][j]) in laser3G:
+                            damage = 3
+                        limit.append(i[0])
         if exist :
             left_blocked = False
             limit = max(limit)
             for cases in range(self.y-1,limit,-1):
                 print(cases)
-                if self.terrain.map[self.x][cases] in horizontal_exception:
+                if self.terrain.map[cases][self.y].murB or self.terrain.map[cases][self.y].murH:
                     left_blocked = True
-            if not left_blocked and self.terrain.mapInit[self.x][self.y] in ['3','4','7','9','F']:
-                left_blocked = True
                    
             if not left_blocked:
-                self.life-=1
-                print('perte en bas')
-            if left_blocked and self.terrain.mapInit[self.x][self.y] in ['1','5','6']:
-                self.life-=1
-                print('perte en bas')    
+                self.life-= damage
+            if left_blocked and not(self.terrain.map[cases][self.y].murG):
+                self.life-= damage
+   
 
                 
     def check_right_laser(self):
-        horizontal_exception = self.terrain.collidable + ['1','3','4','5','6','7','9','R','F']
         limit=[]
         exist = False
-        for i in self.terrain.laserD:
-            if self.x == i[0]:
-                exist = True
-                limit.append(i[1])
+        for i in range(self.terrain.maxMapx):
+            for j in range(self.terrain.maxMapy):
+                if ord(self.terrain.map[i][j]) in (laser1D or laser2D or laser3D):
+                    if self.y == i[1]:
+                        exist = True
+                        if ord(self.terrain.map[i][j]) in laser1D:
+                            damage = 1
+                        elif ord(self.terrain.map[i][j]) in laser2D:
+                            damage = 3
+                        elif ord(self.terrain.map[i][j]) in laser3D:
+                            damage = 3
+                        limit.append(i[0])
         print('existence : ',exist)
         if exist :
             right_blocked = False
@@ -402,17 +427,14 @@ class Robot():
             print(limit)
             for cases in range(self.y+1,limit):
                 print(cases)
-                if self.terrain.map[self.x][cases] in horizontal_exception:
+                if self.terrain.map[cases][self.y].murB or self.terrain.map[cases][self.y].murH:
                     right_blocked = True
-            if not right_blocked and self.terrain.mapInit[self.x][self.y] in ['1','5','6','9','F']:
-                right_blocked = True
                    
             if not right_blocked:
-                self.life-=1
-                print('perte en bas')
-            if right_blocked and self.terrain.mapInit[self.x][self.y] in ['3','4','7']:
-                self.life-=1
-                print('perte en bas')                
+                self.life-= damage
+            if right_blocked and self.terrain.map[cases][self.y].murD:
+                self.life-= damage
+                                
 
                 
     def handle_endturn(self):      
@@ -543,31 +565,31 @@ class Joueur():
         """
         if param== 'avancer de 1'  and not(self.robot.win):
             print('avancer de 1')
-            self.robot.Forward(1)
+            self.robot.Forward(1, self.coords, self.map)
             time.sleep(0.5)
         elif param== 'avancer de 2' and not(self.robot.win):
             print('avancer de 2')
-            self.robot.Forward(2)
+            self.robot.Forward(2, self.coords, self.map)
             time.sleep(0.5)
         elif param== 'avancer de 3' and not(self.robot.win):
             print('avancer de 3')
-            self.robot.Forward(3)
+            self.robot.Forward(3, self.coords, self.map)
             time.sleep(0.5)
         elif param=='reculer de 1'and not(self.robot.win):
             print('reculer de 1')
-            self.robot.Backward()
+            self.robot.Backward( self.coords, self.map)
             time.sleep(0.5)
         elif param=='tourner à droite'and not(self.robot.win):
             print('tourner à droite')
-            self.robot.Turn(1)
+            self.robot.Turn(1, self.coords, self.map)
             time.sleep(0.5)
         elif param=='tourner à gauche'and not(self.robot.win):
             print('tourner à gauche')
-            self.robot.Turn(-1)
+            self.robot.Turn(-1, self.coords, self.map)
             time.sleep(0.5)
         elif param=='faire demi-tour'and not(self.robot.win):
             print('faire demi-tour')
-            self.robot.Turn(2)
+            self.robot.Turn(2, self.coords, self.map)
             time.sleep(0.5)
         else:
             pass
