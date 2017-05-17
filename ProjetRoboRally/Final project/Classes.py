@@ -1,9 +1,5 @@
 #coding:utf-8
 
-""" -----DISCLAIMER-----
-Certains commentaires font reference au compte-rendu de projet informatique. 
-Il est de bon ton de s'en premunir afin d'exploiter au mieux les differentes explications laissees pour le lecteur
-"""
 import random
 import operator
 import time
@@ -153,7 +149,7 @@ class Map(object):
         self.map = plateau
         self.mapInit = self.map
         note.close()
-        self.spawn = [(1,1),(1,15),(9,1),(9,15)] #lieux d'apparition (possibles) initiaux des robots 
+        self.spawn = [(1,1),(1,6),(9,1),(6,9)] #lieux d'apparition (possibles) initiaux des robots 
         self.IApos = []
         self.flag = coordFin
 
@@ -243,9 +239,9 @@ class Robot():
         self.name = name
         self.terrain = terrain
         self.rspawn =random.choice(self.terrain.spawn) 
-
         self.x = self.rspawn[0]
         self.y = self.rspawn[1]
+        self.coords = [self.x, self.y]
         self.dir = random.choice([0,1,2,3])
         self.__dicoDir = {3:'North',0:'East',1:'South',2:'West'}
         self.base = terrain.map
@@ -258,29 +254,32 @@ class Robot():
 
         
     def Turn(self, rotation):
+        print('tourner')
         self.direction = (self.dir + rotation)%4 #tourner à droite ou à gauche
         self.MAJ()
         
     def Forward(self, nbCase, coord, plateau):
+        print(plateau)
         for i in range(nbCase):
-            if self.dir == 0 and plateau[coord[0], coord[1]].murD == 0 and plateau[coord[0] + 1, coord[1]].murG == 0 and plateau[coord[0], coord[1]].trou == False:     #avancer vers la droite, reculer vers la gauche
+            if self.dir == 0 and plateau[coord[0]][coord[1]].murD == 0 and plateau[coord[0]+1][ coord[1]].murG == 0 and plateau[coord[0]][coord[1]].trou == False:     #avancer vers la droite, reculer vers la gauche
                 self.x += 1
-            elif self.dir == 2 and plateau[coord[0], coord[1]].murG == 0 and plateau[coord[0] - 1, coord[1]].murD == 0 and plateau[coord[0], coord[1]].trou == False:   #avancer vers la gauche, reculer vers la droite
+            elif self.dir == 2 and plateau[coord[0]][coord[1]].murG == 0 and plateau[coord[0] - 1][ coord[1]].murD == 0 and plateau[coord[0]][ coord[1]].trou == False:   #avancer vers la gauche, reculer vers la droite
                 self.x += -1
-            elif self.dir == 1 and plateau[coord[0], coord[1]].murB == 0 and plateau[coord[0], coord[1] - 1].murH == 0 and plateau[coord[0], coord[1]].trou == False:   #avancer vers le bas, reculer vers le haut
+            elif self.dir == 1 and plateau[coord[0]][coord[1]].murB == 0 and plateau[coord[0]][ coord[1] - 1].murH == 0 and plateau[coord[0]][coord[1]].trou == False:   #avancer vers le bas, reculer vers le haut
                 self.y += -1
-            elif self.dir ==3 and plateau[coord[0], coord[1]].murH == 0 and plateau[coord[0], coord[1] + 1].murB == 0 and plateau[coord[0], coord[1]].trou == False:                       #avancer vers le haut, reculer vers le bas
+            elif self.dir == 3 and plateau[coord[0]][coord[1]].murH == 0 and plateau[coord[0]][ coord[1] + 1].murB == 0 and plateau[coord[0]][coord[1]].trou == False:                       #avancer vers le haut, reculer vers le bas
                 self.y += 1
         self.MAJ()
     
     def Backward(self, coord, plateau):
-        if self.dir == 0 and plateau[coord[0], coord[1]].murG == 0 and plateau[coord[0] - 1, coord[1]].murD == 0:     #avancer vers la droite, reculer vers la gauche
+        print(plateau)
+        if self.dir == 0 and plateau[coord[0]][coord[1]].murG == 0 and plateau[coord[0] - 1][coord[1]].murD == 0:     #avancer vers la droite, reculer vers la gauche
             self.x += -1
-        elif self.dir == 2 and plateau[coord[0], coord[1]].murD == 0 and plateau[coord[0] + 1, coord[1]].murG == 0:   #avancer vers la gauche, reculer vers la droite
+        elif self.dir == 2 and plateau[coord[0]][coord[1]].murD == 0 and plateau[coord[0] + 1][coord[1]].murG == 0:   #avancer vers la gauche, reculer vers la droite
             self.x += 1
-        elif self.dir == 1 and plateau[coord[0], coord[1]].murH == 0 and plateau[coord[0] , coord[1] + 1].murB == 0:   #avancer vers le bas, reculer vers le haut
+        elif self.dir == 1 and plateau[coord[0]][coord[1]].murH == 0 and plateau[coord[0]][coord[1] + 1].murB == 0:  #avancer vers le bas, reculer vers le haut
             self.y += 1
-        elif self.dir ==3 and plateau[coord[0], coord[1]].murB == 0 and plateau[coord[0] , coord[1] -1].murH == 0:                       #avancer vers le haut, reculer vers le bas
+        elif self.dir == 3 and plateau[coord[0]][coord[1]].murB == 0 and plateau[coord[0]][coord[1] -1].murH == 0:    #avancer vers le haut, reculer vers le bas
             self.y += -1
         self.MAJ()
         
@@ -319,122 +318,116 @@ class Robot():
     def check_up_laser(self):
         limit=[]
         exist = False
-        for i in range(self.terrain.maxMapx):
-            for j in range(self.terrain.maxMapy):
-                if ord(self.terrain.map[i][j]) in (laser1H + laser2H + laser3H):
-                    if self.y == i[1]:
-                        exist = True
-                        if ord(self.terrain.map[i][j]) in laser1H:
-                            damage = 1
-                        elif ord(self.terrain.map[i][j]) in laser2H:
-                            damage = 3
-                        elif ord(self.terrain.map[i][j]) in laser3H:
-                            damage = 3
-                        limit.append(i[0])
+        damage = 0
+        for i in range(self.terrain.maxMapy):
+            for j in range(self.terrain.maxMapx):
+                if ord(self.terrain.map[i][j])in (laser1H + laser2H + laser3H):
+                    exist = True
+                    if ord(self.terrain.map[i][j]) in laser1H:
+                        damage = 1
+                    elif ord(self.terrain.map[i][j]) in laser2H:
+                        damage = 2
+                    elif ord(self.terrain.map[i][j]) in laser3H:
+                        damage = 3
+                    limit.append(i)
         if exist :
             up_blocked = False
             limit = max(limit)
-            for cases in range(self.x,limit+1,-1):
-                if self.terrain.map[cases][self.y].murB or self.terrain.map[cases][self.y].murH:
+            for cases in range(self.y,limit):
+                print("cases:" ,cases)    
+                if self.terrain.map[self.x][cases].murB or self.terrain.map[self.x][cases].murH:
                     up_blocked = True
-
             if not up_blocked:
-                if not(self.terrain.map[cases][self.y].murH):
-                    self.life-= damage
-            if up_blocked and not(self.terrain.map[cases][self.y].murH):
+                print('merde ca marche pas')
+                self.life-= damage
+            if up_blocked and not(self.terrains.map[cases][self.y].murH):
                 self.life-= damage
 
             
     def check_down_laser(self):
         limit=[]
         exist = False
-        for i in range(self.terrain.maxMapx):
-            for j in range(self.terrain.maxMapy):
-                if ord(self.terrain.map[i][j]) in (laser1B + laser2B + laser3B):
-                    if self.y == i[1]:
-                        exist = True
-                        if ord(self.terrain.map[i][j]) in laser1B:
-                            damage = 1
-                        elif ord(self.terrain.map[i][j]) in laser2B:
-                            damage = 3
-                        elif ord(self.terrain.map[i][j]) in laser3B:
-                            damage = 3
-                        limit.append(i[0])
+        for i in range(self.terrain.maxMapy):
+            for j in range(self.terrain.maxMapx):
+                if ord(self.terrain.map[i][j])in (laser1B + laser2B + laser3B):
+                    exist = True
+                    if ord(self.terrain.map[i][j]) in laser1B:
+                        damage = 1
+                    elif ord(self.terrain.map[i][j]) in laser2B:
+                        damage = 2
+                    elif ord(self.terrain.map[i][j]) in laser3B:
+                        damage = 3
+                    limit.append(i)
         if exist :
             down_blocked = False
             limit = min(limit)
-            for cases in range(self.x,limit-1):
-                if self.terrain.map[cases][self.y].murB or self.terrain.map[cases][self.y].murH:
+            for cases in range(self.y,limit):
+                
+                if self.terrain.map[self.x][cases].murH or self.terrain.map[self.x][cases].murB:
                     down_blocked = True
+                print(down_blocked)
                     
             if not down_blocked:
-                self.life-= damage
-                print('perte en bas')
-            if down_blocked and not(self.terrain.map[cases][self.y].murB):
-                self.life-= damage
-                print('perte en bas')            
+                self.life-=damage
+            if down_blocked and not(self.terrains.map[self.x][self.y].murB):
+                self.life-=damage          
 
                 
     def check_left_laser(self):
         limit=[]
         exist = False
-        for i in range(self.terrain.maxMapx):
-            for j in range(self.terrain.maxMapy):
-                if ord(self.terrain.map[i][j]) in (laser1G + laser2G + laser3G):
-                    if self.y == i[1]:
-                        exist = True
-                        if ord(self.terrain.map[i][j]) in laser1G:
-                            damage = 1
-                        elif ord(self.terrain.map[i][j]) in laser2G:
-                            damage = 3
-                        elif ord(self.terrain.map[i][j]) in laser3G:
-                            damage = 3
-                        limit.append(i[0])
+        for i in range(self.terrain.maxMapy):
+            for j in range(self.terrain.maxMapx):
+                if ord(self.terrain.map[i][j])in (laser1G + laser2G + laser3G):
+                    exist = True
+                    if ord(self.terrain.map[i][j]) in laser1G:
+                        damage = 1
+                    elif ord(self.terrain.map[i][j]) in laser2G:
+                        damage = 2
+                    elif ord(self.terrain.map[i][j]) in laser3G:
+                        damage = 3
+                    limit.append(i)
         if exist :
             left_blocked = False
             limit = max(limit)
-            for cases in range(self.y-1,limit,-1):
+            for cases in range(self.y,limit,-1):
                 print(cases)
-                if self.terrain.map[cases][self.y].murB or self.terrain.map[cases][self.y].murH:
+                if self.terrain.map[cases][self.y].murD or self.terrain.map[cases][self.y].murG:
                     left_blocked = True
                    
             if not left_blocked:
-                self.life-= damage
-            if left_blocked and not(self.terrain.map[cases][self.y].murG):
-                self.life-= damage
-   
+                self.life-=damage
+            if left_blocked and not(self.terrains.map[self.x][self.y].murG):
+                self.life-=damage 
 
                 
     def check_right_laser(self):
         limit=[]
         exist = False
-        for i in range(self.terrain.maxMapx):
-            for j in range(self.terrain.maxMapy):
-                if ord(self.terrain.map[i][j]) in (laser1D or laser2D or laser3D):
-                    if self.y == i[1]:
-                        exist = True
-                        if ord(self.terrain.map[i][j]) in laser1D:
-                            damage = 1
-                        elif ord(self.terrain.map[i][j]) in laser2D:
-                            damage = 3
-                        elif ord(self.terrain.map[i][j]) in laser3D:
-                            damage = 3
-                        limit.append(i[0])
-        print('existence : ',exist)
+        for i in range(self.terrain.maxMapy):
+            for j in range(self.terrain.maxMapx):
+                if ord(self.terrain.map[i][j])in (laser1H + laser2H + laser3H):
+                    exist = True
+                    if ord(self.terrain.map[i][j]) in laser1H:
+                        damage = 1
+                    elif ord(self.terrain.map[i][j]) in laser2H:
+                        damage = 2
+                    elif ord(self.terrain.map[i][j]) in laser3H:
+                        damage = 3
+                    limit.append(i)
+        
         if exist :
             right_blocked = False
             limit = min(limit)
             print(limit)
-            for cases in range(self.y+1,limit):
+            for cases in range(self.y,limit):
                 print(cases)
-                if self.terrain.map[cases][self.y].murB or self.terrain.map[cases][self.y].murH:
+                if self.terrain.map[cases][self.y].murD or self.terrain.map[cases][self.y].murG:
                     right_blocked = True
-                   
             if not right_blocked:
-                self.life-= damage
-            if right_blocked and self.terrain.map[cases][self.y].murD:
-                self.life-= damage
-                                
+                self.life-=damage
+            if right_blocked and not(self.terrains.map[self.x][self.y].murD):
+                self.life-=damage              
 
                 
     def handle_endturn(self):      
@@ -443,6 +436,29 @@ class Robot():
         self.check_left_laser()
         self.check_right_laser()
         self.MAJ()
+                    
+    """                   
+    @property
+    def x(self):
+        return self.coords[0]
+
+    @property
+    def y(self):
+        return self.coords[1]
+    
+    @property        
+    def coords(self):
+        return self.__coords
+
+    @coords.setter
+    def coords(self, nouvCoord, plateau):
+        x, y = nouvCoord
+        x = max(0, x)
+        x = min(self.terrain.maxMapx, x)
+        y = max(0, y)
+        y = min(self.terrain.maxMapy, y)
+        self.__coords = (x, y)
+    """
                     
 #définition des cartes à jouer
 class Cartes(object):
@@ -513,6 +529,7 @@ class Joueur():
         self.choice = ['Do_nothing'] # main du joueur. Le 'Do_nothing' est présent si l'utilisateur souhaite ne pas jouer l'intégralité de ses cartes
         self.menu = [] # liste qui va être complétée par les cartes que l'utilisateur veut jouer pendant un tour 
         self.flag_nb = 0
+        self.map = self.robot.terrain.map
     
     def pick_cards(self):
         """ Méthode qui régit la pioche aléatoire de cartes dans le deck
@@ -565,31 +582,31 @@ class Joueur():
         """
         if param== 'avancer de 1'  and not(self.robot.win):
             print('avancer de 1')
-            self.robot.Forward(1, self.coords, self.map)
+            self.robot.Forward(1, self.robot.coords, self.map)
             time.sleep(0.5)
         elif param== 'avancer de 2' and not(self.robot.win):
             print('avancer de 2')
-            self.robot.Forward(2, self.coords, self.map)
+            self.robot.Forward(2, self.robot.coords, self.map)
             time.sleep(0.5)
         elif param== 'avancer de 3' and not(self.robot.win):
             print('avancer de 3')
-            self.robot.Forward(3, self.coords, self.map)
+            self.robot.Forward(3, self.robot.coords, self.map)
             time.sleep(0.5)
         elif param=='reculer de 1'and not(self.robot.win):
             print('reculer de 1')
-            self.robot.Backward( self.coords, self.map)
+            self.robot.Backward(self.robot.coords, self.map)
             time.sleep(0.5)
         elif param=='tourner à droite'and not(self.robot.win):
             print('tourner à droite')
-            self.robot.Turn(1, self.coords, self.map)
+            self.robot.Turn(1)
             time.sleep(0.5)
         elif param=='tourner à gauche'and not(self.robot.win):
             print('tourner à gauche')
-            self.robot.Turn(-1, self.coords, self.map)
+            self.robot.Turn(-1)
             time.sleep(0.5)
         elif param=='faire demi-tour'and not(self.robot.win):
             print('faire demi-tour')
-            self.robot.Turn(2, self.coords, self.map)
+            self.robot.Turn(2)
             time.sleep(0.5)
         else:
             pass
@@ -1068,7 +1085,7 @@ class Game:
     def burry_losers(self):
         for i in self.robot_lst:
             if i.life<=0:
-                self.robot_list.remove(i)
+                self.robot_lst.remove(i)
                 
     def eraser_cannon(self):
         print('\n')
@@ -1197,4 +1214,4 @@ class Game:
             self.Victory()
         if len(self.robot_lst)<=0:
             self.Finished()
-            self.Game_Over()
+            self.Game_over()
